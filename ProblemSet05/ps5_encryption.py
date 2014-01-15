@@ -94,13 +94,22 @@ def buildCoder(shift):
     """
     Returns a dict that can apply a Caesar cipher to a letter.
     The cipher is defined by the shift value. Ignores non-letter characters
-    like punctuation, numbers and spaces.
+    like punctuation, numbers, and spaces.
 
     shift: 0 <= int < 26
     returns: dict
     """
-    ### TODO.
-    
+    asciiLower = string.ascii_lowercase
+    asciiUpper = string.ascii_uppercase
+    code = {}
+
+    for i in range(26):
+        code[asciiUpper[i]] = asciiUpper[(i+shift)%26]
+
+    for i in range(26):
+        code[asciiLower[i]] = asciiLower[(i+shift)%26]      
+
+    return code    
 
 def applyCoder(text, coder):
     """
@@ -110,8 +119,13 @@ def applyCoder(text, coder):
     coder: dict with mappings of characters to shifted characters
     returns: text after mapping coder chars to original text
     """
-    ### TODO.
-    
+    encodedText = ""
+    for char in text:
+        if char in (string.ascii_lowercase + string.ascii_uppercase):
+            encodedText += coder[char]
+        else:
+            encodedText += char
+    return encodedText
 
 def applyShift(text, shift):
     """
@@ -124,13 +138,17 @@ def applyShift(text, shift):
     shift: amount to shift the text (0 <= int < 26)
     returns: text after being shifted by specified amount.
     """
-    ### TODO.
-    ### HINT: This is a wrapper function.
-    
+    return applyCoder(text, buildCoder(shift))
 
 #
 # Problem 2: Decryption
 #
+def getWords(text):
+    text = filter(lambda x: x not in string.punctuation, text)
+    text = filter(lambda x: not x.isdigit(), text)
+    words = text.split(' ')
+    return words
+
 def findBestShift(wordList, text):
     """
     Finds a shift key that can decrypt the encoded text.
@@ -138,8 +156,19 @@ def findBestShift(wordList, text):
     text: string
     returns: 0 <= int < 26
     """
-    ### TODO
-
+    largestCount = 0
+    bestShiftKey = None
+    for shiftKey in range(26):
+        count = 0
+        plaintext = applyShift(text, shiftKey)
+        words = getWords(plaintext)
+        for word in words:
+            if word.lower() in wordList:
+                count += 1
+        if count > largestCount:
+            largestCount = count
+            bestShiftKey = shiftKey
+    return bestShiftKey
 
 def decryptStory():
     """
@@ -150,8 +179,10 @@ def decryptStory():
 
     returns: string - story in plain text
     """
-    ### TODO.
-    return "Not yet implemented." # Remove this comment when you code the function
+    ciphertext = getStoryString()
+    shift = findBestShift(wordList, ciphertext)
+    plaintext = applyShift(ciphertext, shift)
+    return plaintext
 
 #
 # Build data structures used for entire session and run encryption
