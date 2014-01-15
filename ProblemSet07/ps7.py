@@ -76,7 +76,9 @@ class RectangularRoom(object):
         width: an integer > 0
         height: an integer > 0
         """
-        raise NotImplementedError
+        self.width = width
+        self.height = height
+        self.cleanTiles = set()
     
     def cleanTileAtPosition(self, pos):
         """
@@ -86,7 +88,7 @@ class RectangularRoom(object):
 
         pos: a Position
         """
-        raise NotImplementedError
+        self.cleanTiles.add((int(pos.getX()),int(pos.getY())))
 
     def isTileCleaned(self, m, n):
         """
@@ -98,7 +100,8 @@ class RectangularRoom(object):
         n: an integer
         returns: True if (m, n) is cleaned, False otherwise
         """
-        raise NotImplementedError
+        pos = (int(m),int(n))
+        return pos in self.cleanTiles
     
     def getNumTiles(self):
         """
@@ -106,7 +109,7 @@ class RectangularRoom(object):
 
         returns: an integer
         """
-        raise NotImplementedError
+        return self.width*self.height
 
     def getNumCleanedTiles(self):
         """
@@ -114,7 +117,7 @@ class RectangularRoom(object):
 
         returns: an integer
         """
-        raise NotImplementedError
+        return len(self.cleanTiles)
 
     def getRandomPosition(self):
         """
@@ -122,7 +125,7 @@ class RectangularRoom(object):
 
         returns: a Position object.
         """
-        raise NotImplementedError
+        return Position(random.randrange(self.width),random.randrange(self.height))
 
     def isPositionInRoom(self, pos):
         """
@@ -131,7 +134,7 @@ class RectangularRoom(object):
         pos: a Position object.
         returns: True if pos is in the room, False otherwise.
         """
-        raise NotImplementedError
+        return pos.getX() < self.width and pos.getY() < self.height and pos.getX() >= 0 and pos.getY() >= 0
 
 
 class Robot(object):
@@ -153,7 +156,10 @@ class Robot(object):
         room:  a RectangularRoom object.
         speed: a float (speed > 0)
         """
-        raise NotImplementedError
+        self.room = room
+        self.speed = speed
+        self.direction = random.randrange(360)
+        self.position = room.getRandomPosition()
 
     def getRobotPosition(self):
         """
@@ -161,7 +167,7 @@ class Robot(object):
 
         returns: a Position object giving the robot's position.
         """
-        raise NotImplementedError
+        return self.position
     
     def getRobotDirection(self):
         """
@@ -170,7 +176,7 @@ class Robot(object):
         returns: an integer d giving the direction of the robot as an angle in
         degrees, 0 <= d < 360.
         """
-        raise NotImplementedError
+        return self.direction
 
     def setRobotPosition(self, position):
         """
@@ -178,7 +184,7 @@ class Robot(object):
 
         position: a Position object.
         """
-        raise NotImplementedError
+        self.position = position
 
     def setRobotDirection(self, direction):
         """
@@ -186,7 +192,7 @@ class Robot(object):
 
         direction: integer representing an angle in degrees
         """
-        raise NotImplementedError
+        self.direction = direction
 
     def updatePositionAndClean(self):
         """
@@ -214,7 +220,15 @@ class StandardRobot(Robot):
         Move the robot to a new position and mark the tile it is on as having
         been cleaned.
         """
-        raise NotImplementedError
+        pos = self.getRobotPosition()
+        direction = self.getRobotDirection()
+        speed = self.speed
+        newPos = Position(pos.getX()+speed*math.sin(math.radians(direction)),pos.getY()+speed*math.cos(math.radians(direction)))
+        if self.room.isPositionInRoom(newPos):
+            self.setRobotPosition(newPos)
+            self.room.cleanTileAtPosition(newPos)
+        else:
+            self.setRobotDirection(random.randrange(360))
 
 # Uncomment this line to see your implementation of StandardRobot in action!
 ##testRobotMovement(StandardRobot, RectangularRoom)
@@ -239,23 +253,40 @@ def runSimulation(num_robots, speed, width, height, min_coverage, num_trials,
     robot_type: class of robot to be instantiated (e.g. StandardRobot or
                 RandomWalkRobot)
     """
-    raise NotImplementedError
+    total_time_steps = 0.0
+    for trial in range(num_trials):
+        room = RectangularRoom(width, height)
+        robots = []
+        for i in range(num_robots):
+            robots.append(robot_type(room,speed))
+        time_steps = 0
+        while room.getNumCleanedTiles()*1.0/room.getNumTiles() < min_coverage:
+            time_steps += 1
+            for robot in robots:
+                robot.updatePositionAndClean()
+        total_time_steps += time_steps
+    return total_time_steps/num_trials
 
 
 # === Problem 4
 class RandomWalkRobot(Robot):
-    """
-    A RandomWalkRobot is a robot with the "random walk" movement strategy: it
-    chooses a new direction at random at the end of each time-step.
-    """
     def updatePositionAndClean(self):
         """
-        Simulate the passage of a single time-step.
+        Simulate the raise passage of a single time-step.
 
         Move the robot to a new position and mark the tile it is on as having
         been cleaned.
         """
-        raise NotImplementedError
+        pos = self.getRobotPosition()
+        direction = self.getRobotDirection()
+        speed = self.speed
+        newPos = Position(pos.getX()+speed*math.sin(math.radians(direction)),pos.getY()+speed*math.cos(math.radians(direction)))
+        if self.room.isPositionInRoom(newPos):
+            self.setRobotPosition(newPos)
+            self.room.cleanTileAtPosition(newPos)
+            self.setRobotDirection(random.randrange(360))
+        else:
+            self.setRobotDirection(random.randrange(360))
 
 
 # === Problem 5
@@ -263,14 +294,14 @@ class RandomWalkRobot(Robot):
 # 1) Write a function call to showPlot1 that generates an appropriately-labeled
 #     plot.
 #
-#       (... your call here ...)
+# showPlot1("Time It Takes 1 - 10 Robots To Clean 80% Of A Room", "Number of Robots", "Time-steps")
 #
 
 #
 # 2) Write a function call to showPlot2 that generates an appropriately-labeled
 #     plot.
 #
-#       (... your call here ...)
+# showPlot2("Time It Takes 1 - 10 Robots To Clean 80% Of A Room ", "Aspect Ratio", "Time-steps")
 #
 #
 
@@ -314,4 +345,3 @@ def showPlot2(title, x_label, y_label):
     pylab.xlabel(x_label)
     pylab.ylabel(y_label)
     pylab.show()
-    
