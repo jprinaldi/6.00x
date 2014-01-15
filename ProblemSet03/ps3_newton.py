@@ -3,7 +3,6 @@
 # Successive Approximation: Newton's Method
 #
 
-
 # Problem 1: Polynomials
 def evaluatePoly(poly, x):
     '''
@@ -14,14 +13,10 @@ def evaluatePoly(poly, x):
     x: number
     returns: float
     '''
-    # FILL IN YOUR CODE HERE...
-
-
-
-
-
-
-
+    s = 0
+    for i in xrange(len(poly)):
+        s += poly[i]*(x**i)
+    return float(s)
 
 # Problem 2: Derivatives
 def computeDeriv(poly):
@@ -32,11 +27,12 @@ def computeDeriv(poly):
     poly: list of numbers, length &gt; 0
     returns: list of numbers (floats)
     '''
-    # FILL IN YOUR CODE HERE...
-
-
-
-
+    if len(poly) == 1:
+        return [0.0]
+    d = []
+    for i in xrange(1, len(poly)):
+        d.append(float(poly[i]*i))
+    return d
 
 # Problem 3: Newton's Method
 def computeRoot(poly, x_0, epsilon):
@@ -52,4 +48,10 @@ def computeRoot(poly, x_0, epsilon):
     epsilon: float > 0
     returns: list [float, int]
     '''
-    # FILL IN YOUR CODE HERE...
+    it = 0
+    while True:
+        if abs(evaluatePoly(poly, x_0)) <= epsilon:
+            return [x_0, it]
+        it += 1
+        x_1 = x_0 - evaluatePoly(poly, x_0)/evaluatePoly(computeDeriv(poly), x_0)
+        x_0 = x_1
